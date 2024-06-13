@@ -1,8 +1,10 @@
-# importing the required libraries
-import time
-import requests
-from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 import schedule
+import time
+import os
 
 # Twitter accounts to scrape
 twitter_accounts = [
@@ -17,45 +19,45 @@ twitter_accounts = [
     "https://twitter.com/Barchart",
     "https://twitter.com/RoyLMattox"
 ]
+
 # Ticker to search for & interval in minutes
 ticker = "$TSLA"
 interval_minutes = 15
 
-# Twitter scraper function
+# Set up Selenium WebDriver
+options = Options()
+options.headless = True
+# chromedriver path
+service = Service(os.getcwd() + '/chromedriver.exe') 
+
+# Twitter scraper function using Selenium
 def scrape_twitter_account(url, ticker):
     """
-        Scrape a Twitter account for mentions
-        of a ticker symbol.
-        Args:
-            url: The URL of the Twitter account.
-            ticker: The ticker symbol to search for.
-        Returns:
-            The number of times the ticker symbol was mentioned.
+    Scrape a Twitter account for mentions of a ticker symbol.
+    Args:
+        url: The URL of the Twitter account.
+        ticker: The ticker symbol to search for.
+    Returns:
+        The number of times the ticker symbol was mentioned.
     """
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            tweets = soup.find_all('div', {'data-testid': 'tweet'})
-            count = 0
-            for tweet in tweets:
-                # tweet text
-                print(tweet.get_text())
-                if ticker in tweet.get_text():
-                    count += 1
-            return count
-        else:
-            print(f"Failed to retrieve {url}")
-            return 0
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return 0
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.get(url)
+    time.sleep(5)  # Allow time for tweets to load
+    tweets = driver.find_elements(By.XPATH, "//div[@data-testid='tweetText']")
+    count = 0
+    for tweet in tweets:
+        tweet_text = tweet.text
+        # print(tweet_text)
+        if ticker in tweet_text:
+            count += 1
+    driver.quit()
+    return count
 
 # Scheduled job
 def job():
     """
-        Scrape all Twitter accounts for $TSLA mentions
-        of a ticker symbol and print the total count in last 15 minuts.
+    Scrape all Twitter accounts for $TSLA mentions
+    and print the total count in the last 15 minutes.
     """
     total_count = 0
     for account in twitter_accounts:

@@ -40,7 +40,13 @@ Before setting up the venv, make sure you have the following installed on your s
 5. Install the required dependencies by running the following command:
 
    ```
-   pip install requests beautifulsoup4 schedule
+   pip install selenium schedule time os
+   ```
+
+6. You need also to download chromedriver.exe and place it in the file directory(download compatible version (you can find ur version in settings > About Chrome))
+
+   ```
+      https://developer.chrome.com/docs/chromedriver/downloads
    ```
 
 ## Testing the Code
